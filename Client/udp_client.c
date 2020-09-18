@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
     char* fileNumber3 = "3";
     char fileName[128];
 
+
+
     /* check command line arguments */
     if (argc != 3) {
        fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
@@ -75,19 +77,19 @@ int main(int argc, char **argv) {
     printf("Please enter msg: ");
     fgets(buf, BUFSIZE, stdin);
 
-    char cleanBuf[BUFSIZE];
-    strcpy(cleanBuf, buf);
+    // char buf[BUFSIZE];
+    // strcpy(buf, buf);
 
     /* send the message to the server */
     serverlen = sizeof(serveraddr);
 
     //n == number of bytes sent on success
-    n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+    //n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
 
     if(strstr(buf, "exit") != NULL)
     {
         printf("Goodbye...\n");
-        break;
+        valid = 0;
     }
 
     //If no message was given
@@ -134,7 +136,7 @@ int main(int argc, char **argv) {
         else
         {
           //use clean copy of the message
-          n = sendto(sockfd, cleanBuf, strlen(cleanBuf), 0, &serveraddr, serverlen);
+          n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
 
           if (n < 0)
           {
@@ -169,7 +171,7 @@ int main(int argc, char **argv) {
     {
       printf("GET command in progress...\n");
 
-      n = sendto(sockfd, cleanBuf, strlen(cleanBuf), 0, &serveraddr, serverlen);
+      n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
 
       //extract file name
       strncpy(fileName, fileBase, sizeof(fileName));
@@ -205,7 +207,7 @@ int main(int argc, char **argv) {
         else
         {
           //use clean copy of the message
-          n = sendto(sockfd, cleanBuf, strlen(cleanBuf), 0, &serveraddr, serverlen);
+          n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
 
           if (n < 0)
           {
@@ -252,25 +254,34 @@ int main(int argc, char **argv) {
     else if((strstr(buf, "ls") !=NULL) || strstr(buf, "delete") != NULL)
     {
           printf("Command in progress...\n");
-          n = sendto(sockfd, cleanBuf, strlen(cleanBuf), 0, &serveraddr, serverlen);
+          n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
           if (n < 0)
           {
             error("ERROR in sendto");
           }
+          bzero(buf, BUFSIZE);
+
+          n = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *) &serveraddr, &serverlen);
+          printf("Echo from server: %s\n", buf);
     }
 
-    else
-    {
-      n = sendto(sockfd, cleanBuf, strlen(cleanBuf), 0, &serveraddr, serverlen);
-    }
+    // else
+    // {
+    //   n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+    // }
 
-    bzero(buf, BUFSIZE);
-    /* print the server's reply */
-    n = recvfrom(sockfd, buf, strlen(buf), 0, &serveraddr, &serverlen);
-    if (n < 0)
-      error("ERROR in recvfrom");
-    printf("Echo from server: %s", buf);
+    // bzero(buf, BUFSIZE);
+    // /* print the server's reply */
+    // if(valid == 1)
+    // {
+    //   n = recvfrom(sockfd, buf, strlen(buf), 0, &serveraddr, &serverlen);
+    //
+    //   if (n < 0)
+    //   {
+    //     error("ERROR in recvfrom");
+    //   }
+    //   printf("Echo from server: %s\n", buf);
+    // }
   }
-  free(fileName);
   return 0;
 }
