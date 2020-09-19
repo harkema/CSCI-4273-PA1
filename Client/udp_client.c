@@ -120,6 +120,7 @@ int main(int argc, char **argv) {
         strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
       }
 
+      printf("Filename:%s\n", fileName);
 
       if(fileName != NULL)
       {
@@ -131,12 +132,12 @@ int main(int argc, char **argv) {
         if(filePtr == NULL)
         {
           printf("File invalid. Try again.\n");
-          valid = 0;
+          //valid = 0;
         }
         else
         {
-          //use clean copy of the message
           n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+
 
           if (n < 0)
           {
@@ -164,6 +165,9 @@ int main(int argc, char **argv) {
 	      strcpy(buf, "No File Prodivded");
 	      sendto(sockfd, buf, BUFSIZE, 0, &serveraddr, serverlen);
       }
+
+      n = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *) &serveraddr, &serverlen);
+      printf("Echo from server: %s\n", buf);
     }
 
     //command is get
@@ -206,7 +210,7 @@ int main(int argc, char **argv) {
         }
         else
         {
-          //use clean copy of the message
+
           n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
 
           if (n < 0)

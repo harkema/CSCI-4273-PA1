@@ -36,6 +36,12 @@ int main(int argc, char **argv) {
   int optval; /* flag value for setsockopt */
   int n; /* message byte size */
 
+  char* fileBase = "foo";
+  char* fileNumber1 = "1";
+  char* fileNumber2 = "2";
+  char* fileNumber3 = "3";
+  char fileName[128];
+
   /*
    * check command line arguments
    */
@@ -143,17 +149,155 @@ int main(int argc, char **argv) {
       }
 
       closedir(dr);
-  }
+    }
+
+    //put command
+    //look for seg fault
+    else if (strstr(buf, "put") != NULL)
+    {
+      bzero(fileName, 128);
+
+      strncpy(fileName, fileBase, sizeof(fileName));
 
 
+      if(strstr(buf, "1") != NULL)
+      {
+        strncat(fileName, fileNumber1, (sizeof(fileName) - strlen(fileName)));
+      }
+      else if (strstr(buf, "2") != NULL)
+      {
+        strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
+      }
+      else
+      {
+        strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
+      }
+
+      printf("Name:%s\n", fileName);
+      FILE *fp = fopen(fileName, "wb");
+      if(fp == NULL)
+      {
+         bzero(buf, BUFSIZE);
+         strcpy(buf, "File could not create correctly");
+      } else
+      {
+         int successfullyWritten = 0;
+         do {
+          bzero(buf, BUFSIZE);
+          n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
+            //Check if file is over with EOF marker
+          if(buf[n - 1] == EOF)
+          {
+             n = n - 1;
+          }
+          successfullyWritten = fwrite(buf, 1, n, fp);
+         }
+         while (successfullyWritten == BUFSIZE);
+          fclose(fp);
+          bzero(buf, BUFSIZE);
+          strcpy(buf, "File successfully written");
+      }
+
+    }
+
+    //delete command
+    else if(strstr(buf, "delete") != NULL)
+    {
+      bzero(fileName, 128);
+
+      strncpy(fileName, fileBase, sizeof(fileName));
+
+      if(strstr(buf, "1") != NULL)
+      {
+        strncat(fileName, fileNumber1, (sizeof(fileName) - strlen(fileName)));
+      }
+      else if (strstr(buf, "2") != NULL)
+      {
+        strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
+      }
+      else
+      {
+        strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
+      }
+
+
+      FILE *fp = fopen(fileName, "r");
+      if(fp == NULL)
+      {
+         bzero(buf, BUFSIZE);
+         strcpy(buf, "File does not exist");
+      }
+      else
+      {
+       printf("Deleting file now...\n");
+       fclose(fp);
+       int fileDeleted = remove(fileName);
+       if(fileDeleted == 0)
+       {
+         strcpy(buf, "File Deleted Successfully");
+       }
+       else
+       {
+         strcpy(buf, "Error: File Not Deleted");
+       }
+      }
+
+    }
+
+    //get command
+    else if(strstr(buf, "get"))
+    {
+      bzero(fileName, 128);
+
+      if(strstr(buf, "1") != NULL)
+      {
+        strncat(fileName, fileNumber1, (sizeof(fileName) - strlen(fileName)));
+      }
+      else if (strstr(buf, "2") != NULL)
+      {
+        strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
+      }
+      else
+      {
+        strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
+      }
+
+       FILE *fp = fopen(fileName, "rb");
+
+       if(fp == NULL)
+       {
+        printf("File!\n");
+        }
+       else
+       {
+          //Send to client
+          int successfullyRead = 0;
+          do
+          {
+            bzero(buf, BUFSIZE);
+            successfullyRead = fread(buf, 1, BUFSIZE, fp);
+            sendto(sockfd, buf, successfullyRead, 0, (struct sockaddr *) &clientaddr, clientlen);
+          } while(successfullyRead == BUFSIZE);
+          fclose(fp);
+          char *str = "File successfully read";
+          strcpy(buf, str);
+        }
+
+    }
+
+    else
+    {
+      bzero(buf, BUFSIZE);
+      char *str = "Uknown command.\n";
+      strcpy(buf, str);
+    }
     /*
      * sendto: echo the input back to the client
      */
-
-
     n = sendto(sockfd, buf, strlen(buf), 0, &clientaddr, clientlen);
     printf("N:%d\n", n);
     if (n < 0)
       error("ERROR in sendto");
   }
+  return 0;
 }
