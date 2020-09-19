@@ -86,17 +86,20 @@ int main(int argc, char **argv) {
     //n == number of bytes sent on success
     //n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
 
-    if(strstr(buf, "exit") != NULL)
-    {
-        printf("Goodbye...\n");
-        valid = 0;
-    }
 
     //If no message was given
     if(n < 0)
     {
       error("ERROR in sendto");
     }
+
+    else if(strstr(buf, "exit") != NULL)
+    {
+        printf("Goodbye...\n");
+        n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+        valid = 0;
+    }
+
 
     //command is put
     else if(strstr(buf, "put") != NULL)
@@ -115,12 +118,15 @@ int main(int argc, char **argv) {
       {
         strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
       }
-      else
+      else if (strstr(buf, "3") != NULL)
       {
         strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
       }
-
-      printf("Filename:%s\n", fileName);
+      else
+      {
+        printf("File does not exist\n");
+        continue;
+      }
 
       if(fileName != NULL)
       {
@@ -132,7 +138,7 @@ int main(int argc, char **argv) {
         if(filePtr == NULL)
         {
           printf("File invalid. Try again.\n");
-          //valid = 0;
+
         }
         else
         {
@@ -189,9 +195,14 @@ int main(int argc, char **argv) {
       {
         strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
       }
-      else
+      else if (strstr(buf, "3") != NULL)
       {
         strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
+      }
+      else
+      {
+        printf("File does not exist\n");
+        continue;
       }
 
 
@@ -206,7 +217,7 @@ int main(int argc, char **argv) {
         if(filePtr == NULL)
         {
           printf("File invalid. Try again.\n");
-          valid = 0;
+
         }
         else
         {
@@ -238,7 +249,8 @@ int main(int argc, char **argv) {
               while(writeSuccess == BUFSIZE);
                fclose(filePtr);
                bzero(buf, BUFSIZE);
-               printf("Write successful\n");
+               n = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *) &serveraddr, &serverlen);
+               printf("Echo from server: %s\n", buf);
         }
 
       }
@@ -251,7 +263,7 @@ int main(int argc, char **argv) {
 	      sendto(sockfd, buf, BUFSIZE, 0, &serveraddr, serverlen);
       }
 
-
+      continue;
     }
 
     //command is ls or delete - just send the message
@@ -268,6 +280,16 @@ int main(int argc, char **argv) {
           n = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *) &serveraddr, &serverlen);
           printf("Echo from server: %s\n", buf);
     }
+
+    else
+    {
+      printf("Uknown command\n");
+      n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+      n = recvfrom(sockfd, buf, BUFSIZE, 0, (struct sockaddr *) &serveraddr, &serverlen);
+      printf("Echo from server: %s\n", buf);
+
+    }
+
 
     // else
     // {

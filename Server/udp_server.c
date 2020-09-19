@@ -152,7 +152,6 @@ int main(int argc, char **argv) {
     }
 
     //put command
-    //look for seg fault
     else if (strstr(buf, "put") != NULL)
     {
       bzero(fileName, 128);
@@ -168,9 +167,13 @@ int main(int argc, char **argv) {
       {
         strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
       }
-      else
+      else if (strstr(buf, "3") != NULL)
       {
         strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
+      }
+      else
+      {
+        printf("File does not exist");
       }
 
       printf("Name:%s\n", fileName);
@@ -257,9 +260,14 @@ int main(int argc, char **argv) {
       {
         strncat(fileName, fileNumber2, (sizeof(fileName) - strlen(fileName)));
       }
-      else
+      else if (strstr(buf, "3") != NULL)
       {
         strncat(fileName, fileNumber3, (sizeof(fileName) - strlen(fileName)));
+      }
+      else
+      {
+        printf("File does not exist\n");
+        continue;
       }
 
        FILE *fp = fopen(fileName, "rb");
@@ -267,6 +275,8 @@ int main(int argc, char **argv) {
        if(fp == NULL)
        {
         printf("File!\n");
+        char *str = "File does not exist";
+        strcpy(buf, str);
         }
        else
        {
@@ -285,12 +295,14 @@ int main(int argc, char **argv) {
 
     }
 
-    else
+    //exit command
+    else if(strstr(buf, "exit"))
     {
-      bzero(buf, BUFSIZE);
-      char *str = "Uknown command.\n";
-      strcpy(buf, str);
+      printf("Goodbye...(from server)\n");
+      exit(0);
     }
+
+  
     /*
      * sendto: echo the input back to the client
      */
