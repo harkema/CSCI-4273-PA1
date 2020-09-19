@@ -248,9 +248,12 @@ int main(int argc, char **argv) {
     }
 
     //get command
+
     else if(strstr(buf, "get"))
     {
       bzero(fileName, 128);
+
+      strncpy(fileName, fileBase, sizeof(fileName));
 
       if(strstr(buf, "1") != NULL)
       {
@@ -267,9 +270,9 @@ int main(int argc, char **argv) {
       else
       {
         printf("File does not exist\n");
-        continue;
       }
 
+      printf("FileName:%s\n", fileName);
        FILE *fp = fopen(fileName, "rb");
 
        if(fp == NULL)
@@ -302,7 +305,7 @@ int main(int argc, char **argv) {
       exit(0);
     }
 
-  
+
     /*
      * sendto: echo the input back to the client
      */
